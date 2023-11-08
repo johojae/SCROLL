@@ -47,21 +47,6 @@ OpenCV SDK를 다운로드하고 프로젝트 적용을 위한 설정을 추가�
     
 ### 안드로이드 프로젝트에 OpenCV 적용
 생성한 안드로이드 프로젝트에 opencv를 모듈로 추가하고 dependency를 적용한다
-
-* build.gradle
-  * 아래와 같이 방식으로 so 등록이 필요하다고 함(현재 여기서 막힌 듯..합니다..)
-  <pre>
-    <code>
-      android{
-      	packaging {
-      		jniLibs.pickFirsts.add("libs/arm64-v8a/libc++_shared.so")
-      		jniLibs.pickFirsts.add("libs/x86/libc++_shared.so")
-      		jniLibs.pickFirsts.add("libs/x86_64/libc++_shared.so")
-      		jniLibs.pickFirsts.add("libs/armeabi-v7a/libc++_shared.so")
-      	}
-      }
-    </code>
-  </pre>
   
 * settings.gradle
   * projectDir은 다운로드하여 받은 폴더 중 sdk 폴더만 따로 옮긴 경로
