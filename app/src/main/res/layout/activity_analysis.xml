@@ -33,8 +33,18 @@
         android:layout_height="wrap_content"
         android:clickable="true"
         opencv:srcCompat="@android:drawable/ic_lock_silent_mode_off"
-        app:layout_constraintBottom_toTopOf="@id/fabBack"
-        app:layout_constraintEnd_toEndOf="@id/fabBack"
-        android:layout_marginBottom="12dp" />
+        app:layout_constraintBottom_toBottomOf="@id/fabBack"
+        app:layout_constraintEnd_toStartOf="@id/fabBack"
+        android:layout_marginRight="12dp" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabCamChange"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        opencv:srcCompat="@android:drawable/ic_popup_sync"
+        app:layout_constraintBottom_toBottomOf="@id/fabAlert"
+        app:layout_constraintEnd_toStartOf="@id/fabAlert"
+        android:layout_marginRight="12dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

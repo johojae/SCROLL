@@ -25,6 +25,7 @@ class AnalysisActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewL
     private lateinit var faceDetector: Detector
     private lateinit var eyeDetector: Detector
     private lateinit var binding: ActivityAnalysisBinding
+    private var cameraIndex: Int = 0
 
     private val loaderCallback = object : BaseLoaderCallback(this) {
         override fun onManagerConnected(status: Int) {
@@ -47,7 +48,7 @@ class AnalysisActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewL
         cameraView = findViewById(R.id.activity_surface_view)
         cameraView.visibility = SurfaceView.VISIBLE
         cameraView.setCvCameraViewListener(this)
-        cameraView.setCameraIndex(0)    // back:0 front:1
+        cameraView.setCameraIndex(cameraIndex)    // back:0 front:1
 
         binding.fabBack.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
@@ -58,6 +59,13 @@ class AnalysisActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewL
             val notification: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             val ringtone = RingtoneManager.getRingtone(applicationContext, notification)
             ringtone.play()
+        }
+
+        binding.fabCamChange.setOnClickListener {
+            cameraView.disableView()
+            cameraIndex = if (cameraIndex == 0) 1 else 0
+            cameraView.setCameraIndex(cameraIndex)
+            cameraView.enableView()
         }
     }
 
