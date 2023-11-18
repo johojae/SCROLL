@@ -15,6 +15,7 @@
  */
 package com.kaist.dd
 
+import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -51,6 +52,10 @@ class FaceLandmarkerHelper(
     // For this example this needs to be a var so it can be reset on changes.
     // If the Face Landmarker will not change, a lazy val would be preferable.
     private var faceLandmarker: FaceLandmarker? = null
+    private var isUndetected = false
+    private var undetectedStartTime: Long = 0
+    private var undetectedTimeCounter: Int = 0
+    private var activeFaceDetect:Boolean = true
 
     init {
         setupFaceLandmarker()
@@ -333,6 +338,11 @@ class FaceLandmarkerHelper(
         return null
     }
 
+    fun setActiveFaceDetect(active: Boolean) {
+        Log.d("jhyun", "setActiveFaceDetect " + active.toString())
+        activeFaceDetect = active
+    }
+
     // 2개의 점 사이의 거리를 계산
     private fun calcP2PDistance(x1: Float, y1: Float, x2: Float, y2: Float): Double {
         return sqrt((x2 - x1).toDouble().pow(2.0) + (y2 - y1).toDouble().pow(2.0))
@@ -344,8 +354,9 @@ class FaceLandmarkerHelper(
         input: MPImage
     ) {
         var avgEAR = 0.1
-        if (result.faceLandmarks().size > 0) {
+        var detectedFace:Boolean = result.faceLandmarks().size > 0
 
+        if (detectedFace) {
             val finishTimeMs = SystemClock.uptimeMillis()
             val inferenceTime = finishTimeMs - result.timestampMs()
 
@@ -401,8 +412,35 @@ class FaceLandmarkerHelper(
                     avgEAR
                 )
             )
+
+            // Face 인식이 된 경우에 대한 처리
+            isUndetected = false
+            undetectedStartTime = 0
         } else {
             faceLandmarkerHelperListener?.onEmpty()
+
+            // Face 인식이 되지 않은 경우에 대한 처리
+            if (!activeFaceDetect) {
+                // Face 미인식에 대한 Alert Dialog 가 출력된 경우 시간 계산 처리를 하지 않음
+                isUndetected = false
+                return;
+            }
+            if (!isUndetected) {
+                // Face 인식이 처음 안된 경우
+                isUndetected = true
+                undetectedStartTime = System.currentTimeMillis()
+                undetectedTimeCounter = 0
+            } else {
+                val currentTime = System.currentTimeMillis()
+                val timeDifference = currentTime - undetectedStartTime
+
+                // Face 인식에 대한 Time-out 처리 (20 sec)
+                undetectedTimeCounter++
+                if (undetectedTimeCounter % 30 === 0 && timeDifference >= 1000 * 20) {
+                    undetectedStartTime = System.currentTimeMillis()
+                    faceLandmarkerHelperListener?.onUndetectedFace()
+                }
+            }
         }
     }
 
@@ -446,7 +484,7 @@ class FaceLandmarkerHelper(
     interface LandmarkerListener {
         fun onError(error: String, errorCode: Int = OTHER_ERROR)
         fun onResults(resultBundle: ResultBundle)
-
         fun onEmpty() {}
+        fun onUndetectedFace()
     }
 }

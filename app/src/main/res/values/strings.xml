@@ -48,4 +48,8 @@
         <item>CPU</item>
         <item>GPU</item>
     </string-array>
+
+    <string name="face_undetected_title">사용자 얼굴 인식 불가</string>
+    <string name="face_undetected_message">사용자의 얼굴을 앱에서 인식할 수 없습니다. 인식하는 카메라(전/후면)의 위치를 변경하거나 스마트폰의 방향을 조정해 주세요.</string>
+    <string name="face_undetected_button">확인</string>
 </resources>

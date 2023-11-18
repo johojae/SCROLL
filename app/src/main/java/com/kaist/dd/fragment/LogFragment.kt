@@ -511,4 +511,8 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         }
          */
     }
+
+    override fun onUndetectedFace() {
+        // no-op
+    }
 }

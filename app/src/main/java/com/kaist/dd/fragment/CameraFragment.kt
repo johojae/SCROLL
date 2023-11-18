@@ -16,6 +16,7 @@
 package com.kaist.dd.fragment
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
@@ -50,6 +51,7 @@ import java.util.concurrent.TimeUnit
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Build
 import androidx.core.app.NotificationCompat //Android 13 이상일 경우 추가 필요
 
@@ -60,6 +62,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
     private var isSleeping = false
     private var status: String = "awake" // Default status is awake
     private var sleepingStartTime: Long = 0
+    private var isShowFaceUndetectedAlert: Boolean = false
     //-----------------------
 
     companion object {
@@ -495,5 +498,35 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
             }
              */
         }
+    }
+
+    override fun onUndetectedFace() {
+        activity?.runOnUiThread {
+            if (_fragmentCameraBinding != null) {
+                Log.d("jhyun", "onUndetectedFace " + isShowFaceUndetectedAlert.toString())
+                if (!isShowFaceUndetectedAlert) {
+                    createUndetectedFaceAlert()
+                }
+            }
+        }
+    }
+
+    private fun createUndetectedFaceAlert() {
+        // Face 미 인식에 대한 Time-out 발생 시, Alert Dialog 로 사용자에게 알림 (REQ-DD-004)
+        val builder:AlertDialog.Builder = AlertDialog.Builder(requireContext())
+        builder.setTitle(R.string.face_undetected_title)
+        builder.setMessage(R.string.face_undetected_message)
+        builder.setNeutralButton(R.string.face_undetected_button, DialogInterface.OnClickListener { dialog, which ->
+            dialog.dismiss()
+        })
+        builder.setOnDismissListener {
+            isShowFaceUndetectedAlert = false
+            Log.d("jhyun", "setOnDismissListener")
+            faceLandmarkerHelper.setActiveFaceDetect(true)
+        }
+        builder.show()
+
+        isShowFaceUndetectedAlert = true
+        faceLandmarkerHelper.setActiveFaceDetect(false)
     }
 }

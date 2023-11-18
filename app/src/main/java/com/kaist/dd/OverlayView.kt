@@ -65,29 +65,23 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-        /*
+
         if(results == null || results!!.faceLandmarks().isEmpty()) {
             clear()
             return
         }
 
         results?.let { faceLandmarkerResult ->
-
-            if( faceLandmarkerResult.faceBlendshapes().isPresent) {
-                faceLandmarkerResult.faceBlendshapes().get().forEach {
-                    it.forEach {
-                        Log.e(TAG, it.displayName() + " " + it.score())
-                    }
-                }
+            FaceLandmarker.FACE_LANDMARKS_LEFT_EYE.forEach {
+                canvas.drawLine(
+                    faceLandmarkerResult.faceLandmarks().get(0).get(it!!.start()).x() * imageWidth * scaleFactor,
+                    faceLandmarkerResult.faceLandmarks().get(0).get(it.start()).y() * imageHeight * scaleFactor,
+                    faceLandmarkerResult.faceLandmarks().get(0).get(it.end()).x() * imageWidth * scaleFactor,
+                    faceLandmarkerResult.faceLandmarks().get(0).get(it.end()).y() * imageHeight * scaleFactor,
+                    linePaint)
             }
 
-            for(landmark in faceLandmarkerResult.faceLandmarks()) {
-                for(normalizedLandmark in landmark) {
-                    canvas.drawPoint(normalizedLandmark.x() * imageWidth * scaleFactor, normalizedLandmark.y() * imageHeight * scaleFactor, pointPaint)
-                }
-            }
-
-            FaceLandmarker.FACE_LANDMARKS_CONNECTORS.forEach {
+            FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE.forEach {
                 canvas.drawLine(
                     faceLandmarkerResult.faceLandmarks().get(0).get(it!!.start()).x() * imageWidth * scaleFactor,
                     faceLandmarkerResult.faceLandmarks().get(0).get(it.start()).y() * imageHeight * scaleFactor,
@@ -96,7 +90,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     linePaint)
             }
         }
-         */
     }
 
     fun setResults(
