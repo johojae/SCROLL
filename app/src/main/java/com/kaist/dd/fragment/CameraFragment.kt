@@ -56,6 +56,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat //Android 13 이상일 경우 추가 필요
+import com.kaist.dd.AlertMediaHelper
 
 class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
@@ -77,6 +78,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         get() = _fragmentCameraBinding!!
 
     private lateinit var faceLandmarkerHelper: FaceLandmarkerHelper
+    private lateinit var alertMediaHelper: AlertMediaHelper
     private val viewModel: MainViewModel by activityViewModels()
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
@@ -173,6 +175,9 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                 maxNumFaces = viewModel.currentMaxFaces,
                 currentDelegate = viewModel.currentDelegate,
                 faceLandmarkerHelperListener = this
+            )
+            alertMediaHelper = AlertMediaHelper(
+                context = requireContext()
             )
         }
 
@@ -526,6 +531,9 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         }
         builder.show()
         playRingtone()
+//        alertMediaHelper.playMedia(1)
+//        alertMediaHelper.playMedia(2)
+//        alertMediaHelper.playMedia(3)
 
         isShowFaceUndetectedAlert = true
         faceLandmarkerHelper.setActiveFaceDetect(false)
