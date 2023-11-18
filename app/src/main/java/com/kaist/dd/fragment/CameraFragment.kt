@@ -52,6 +52,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.DialogInterface
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat //Android 13 이상일 경우 추가 필요
 
@@ -503,7 +505,6 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
     override fun onUndetectedFace() {
         activity?.runOnUiThread {
             if (_fragmentCameraBinding != null) {
-                Log.d("jhyun", "onUndetectedFace " + isShowFaceUndetectedAlert.toString())
                 if (!isShowFaceUndetectedAlert) {
                     createUndetectedFaceAlert()
                 }
@@ -521,12 +522,18 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         })
         builder.setOnDismissListener {
             isShowFaceUndetectedAlert = false
-            Log.d("jhyun", "setOnDismissListener")
             faceLandmarkerHelper.setActiveFaceDetect(true)
         }
         builder.show()
+        playRingtone()
 
         isShowFaceUndetectedAlert = true
         faceLandmarkerHelper.setActiveFaceDetect(false)
+    }
+
+    private fun playRingtone() {
+        val notification: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        val ringtone = RingtoneManager.getRingtone(requireContext(), notification)
+        ringtone.play()
     }
 }

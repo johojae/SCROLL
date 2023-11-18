@@ -339,7 +339,6 @@ class FaceLandmarkerHelper(
     }
 
     fun setActiveFaceDetect(active: Boolean) {
-        Log.d("jhyun", "setActiveFaceDetect " + active.toString())
         activeFaceDetect = active
     }
 
