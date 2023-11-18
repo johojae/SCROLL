@@ -1,66 +1,38 @@
-# SCROLL
-KAIST TEAM PROJECT
+# MediaPipe Tasks Face Landmark Detection Android Demo
 
+### Overview
 
-## 개발환경 구축
-### OpenCV Android Project 적용방법
-OpenCV SDK를 다운로드하고 프로젝트 적용을 위한 설정을 추가한다
+This is a camera app that can  detects face landmarks either from continuous camera frames seen by your device's front camera, an image, or a video from the device's gallery using a custom **task** file.
 
-* OpenCV SDK for Android Download(https://opencv.org/releases/)
-  * https://github.com/opencv/opencv/releases/download/4.8.0/opencv-4.8.0-android-sdk.zip
+The task file is downloaded by a Gradle script when you build and run the app. You don't need to do any additional steps to download task files into the project explicitly unless you wish to use your own landmark detection task. If you do use your own task file, place it into the app's *assets* directory.
 
-* 다운로드한 파일을 압축해제하여 sdk 폴더만 안드로이드 프로젝트 폴더로 옮겨서 따로 보관
-  
-* opencv 프로젝트 파일 수정
-  * build.gradle의 android 설정에 아래 항목들 추가
-    <pre>
-      <code>
-      android {
-      	namespace "org.opencv"
-      	buildFeatures {
-      		aidl true
-      		buildConfig true
-      	}
-      	java {
-      		toolchain {
-      			languageVersion = JavaLanguageVersion.of(17)
-      		}
-      	}
-      }
-      </code>
-    </pre>
+This application should be run on a physical Android device to take advantage of the camera.
 
-  * java버전 관련 오류가 있을경우 아래와 같이 변경이 필요할 수 있음
-    <pre>
-      <code>
-    android {
-    	compileOptions {
-    		sourceCompatibility JavaVersion.VERSION_17
-    		targetCompatibility JavaVersion.VERSION_17
-    	}
-    }
-      </code>
-    </pre>
+## Build the demo using Android Studio
 
-* opencv의 AndroidManifest.xml에서 namespace 제거
-  * \<manifest xmlns:android="http://schemas.android.com/apk/res/android" namespace="org.opencv.android"/\> <- 여기서 namespace를 지워야 한다
-    
-### 안드로이드 프로젝트에 OpenCV 적용
-생성한 안드로이드 프로젝트에 opencv를 모듈로 추가하고 dependency를 적용한다
-  
-* settings.gradle
-  * projectDir은 다운로드하여 받은 폴더 중 sdk 폴더만 따로 옮긴 경로
-  <pre>
-    <code>
-      include(":opencv")
-      project(":opencv").projectDir = File("/home/scroll/AndroidStudioProjects/opencv-sdk-4.8.0")
-    </code>
-  </pre>
+### Prerequisites
 
-* OpenCV 모듈 등록을 위해 안드로이드 스튜디오의 메뉴를 아래와 같이 선택
-  * File → ‘Sync Project with Gradle Files’
-  * File → Project Structure → Dependencies → add module dependency ‘opencv’ on ’app’ module
+*   The **[Android Studio](https://developer.android.com/studio/index.html)** IDE. This sample has been tested on Android Studio Dolphin.
 
-* reference
-  * add opencv library: https://stackoverflow.com/questions/76831677/trying-to-import-opencv-4-8-in-android-studio-giraffe
-  * https://proandroiddev.com/android-studio-step-by-step-guide-to-download-and-install-opencv-for-android-9ddcb78a8bc3
+*   A physical Android device with a minimum OS version of SDK 24 (Android 7.0 -
+    Nougat) with developer mode enabled. The process of enabling developer mode
+    may vary by device.
+
+### Building
+
+*   Open Android Studio. From the Welcome screen, select Open an existing
+    Android Studio project.
+
+*   From the Open File or Project window that appears, navigate to and select
+    the mediapipe/examples/face_landmarker/android directory. Click OK. You may
+    be asked if you trust the project. Select Trust.
+
+*   If it asks you to do a Gradle Sync, click OK.
+
+*   With your Android device connected to your computer and developer mode
+    enabled, click on the green Run arrow in Android Studio.
+
+### Models used
+
+Downloading, extraction, and placing the models into the *assets* folder is
+managed automatically by the **download.gradle** file.
