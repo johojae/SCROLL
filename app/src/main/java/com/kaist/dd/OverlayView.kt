@@ -65,6 +65,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
+        /*
         if(results == null || results!!.faceLandmarks().isEmpty()) {
             clear()
             return
@@ -95,6 +96,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     linePaint)
             }
         }
+         */
     }
 
     fun setResults(

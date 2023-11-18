@@ -31,8 +31,7 @@
         threshold of face detect results button</string>
     <string name="menu_camera">Camera</string>
     <string name="menu_log">Log</string>
-    <string name="tv_log_placeholder">Click + to add an image or a video
-        to begin running the face landmarker.</string>
+    <string name="tv_log_placeholder">여기에 Log Table 표시</string>
 
     <string name="label_inference_time">Inference Time</string>
     <string name="label_fps">Frames per Second</string>

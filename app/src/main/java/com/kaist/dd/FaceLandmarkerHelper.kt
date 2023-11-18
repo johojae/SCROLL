@@ -32,6 +32,10 @@ import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
 
+//Eye 좌표 계산
+import kotlin.math.pow
+import kotlin.math.sqrt
+
 class FaceLandmarkerHelper(
     var minFaceDetectionConfidence: Float = DEFAULT_FACE_DETECTION_CONFIDENCE,
     var minFaceTrackingConfidence: Float = DEFAULT_FACE_TRACKING_CONFIDENCE,
@@ -108,7 +112,7 @@ class FaceLandmarkerHelper(
                     .setMinTrackingConfidence(minFaceTrackingConfidence)
                     .setMinFacePresenceConfidence(minFacePresenceConfidence)
                     .setNumFaces(maxNumFaces)
-                    .setOutputFaceBlendshapes(true)
+                    //.setOutputFaceBlendshapes(true)
                     .setRunningMode(runningMode)
 
             // The ResultListener and ErrorListener only use for LIVE_STREAM mode.
@@ -316,7 +320,8 @@ class FaceLandmarkerHelper(
                 landmarkResult,
                 inferenceTimeMs,
                 image.height,
-                image.width
+                image.width,
+                0.0 //나중에 쓰게 된다면 변수 대입으로 변경
             )
         }
 
@@ -328,25 +333,75 @@ class FaceLandmarkerHelper(
         return null
     }
 
+    // 2개의 점 사이의 거리를 계산
+    private fun calcP2PDistance(x1: Float, y1: Float, x2: Float, y2: Float): Double {
+        return sqrt((x2 - x1).toDouble().pow(2.0) + (y2 - y1).toDouble().pow(2.0))
+    }
+
     // Return the landmark result to this FaceLandmarkerHelper's caller
     private fun returnLivestreamResult(
         result: FaceLandmarkerResult,
         input: MPImage
     ) {
-        if( result.faceLandmarks().size > 0 ) {
+        var avgEAR = 0.1
+        if (result.faceLandmarks().size > 0) {
+
             val finishTimeMs = SystemClock.uptimeMillis()
             val inferenceTime = finishTimeMs - result.timestampMs()
+
+            val detectedFaces = result.faceLandmarks()
+            for (face in detectedFaces) {
+                // Get the right eye landmarks
+                val rightEyeLandmark33 = face[33].x() to face[33].y()  // Landmark 33
+                val rightEyeLandmark133 = face[133].x() to face[133].y() // Landmark 133
+
+                // Calculate the horizontal distance between landmarks 33 and 133 for the right eye
+                val rightHorizontalDist = calcP2PDistance(rightEyeLandmark33.first, rightEyeLandmark33.second, rightEyeLandmark133.first, rightEyeLandmark133.second)
+
+                // Calculate the vertical distance between landmarks 249 and 146 for the right eye
+                val rightEyeLandmark159 = face[159].x() to face[159].y()  // Landmark 249
+                val rightEyeLandmark145 = face[145].x() to face[145].y() // Landmark 146
+                val rightVerticalDist = calcP2PDistance(rightEyeLandmark159.first, rightEyeLandmark159.second, rightEyeLandmark145.first, rightEyeLandmark145.second)
+
+                // Calculate the EAR for the right eye
+                val rightEAR = rightVerticalDist / rightHorizontalDist
+
+
+                // Get the left eye landmarks
+                val leftEyeLandmark263 = face[263].x() to face[263].y()  // Landmark 263
+                val leftEyeLandmark362 = face[362].x() to face[362].y() // Landmark 362
+
+                // Calculate the horizontal distance between landmarks 263 and 362 for the left eye
+                val leftHorizontalDist = calcP2PDistance(leftEyeLandmark263.first, leftEyeLandmark263.second, leftEyeLandmark362.first, leftEyeLandmark362.second)
+
+                // Calculate the vertical distance between landmarks 386 and 374 for the left eye
+                val leftEyeLandmark386 = face[386].x() to face[386].y()  // Landmark 386
+                val leftEyeLandmark374 = face[373].x() to face[373].y() // Landmark 374
+                val leftVerticalDist = calcP2PDistance(leftEyeLandmark386.first, leftEyeLandmark386.second, leftEyeLandmark374.first, leftEyeLandmark374.second)
+
+                // Calculate the EAR for the left eye
+                val leftEAR = leftVerticalDist / leftHorizontalDist
+
+
+
+                // Calculate the average EAR for both eyes
+                avgEAR = (rightEAR + leftEAR) / 2.0
+
+                // Log the average EAR
+                Log.d(TAG, "Average EAR: $avgEAR")
+
+            }
 
             faceLandmarkerHelperListener?.onResults(
                 ResultBundle(
                     result,
                     inferenceTime,
                     input.height,
-                    input.width
+                    input.width,
+                    avgEAR
                 )
             )
-        }
-        else {
+        } else {
             faceLandmarkerHelperListener?.onEmpty()
         }
     }
@@ -378,6 +433,7 @@ class FaceLandmarkerHelper(
         val inferenceTime: Long,
         val inputImageHeight: Int,
         val inputImageWidth: Int,
+        val avgEAR : Double //Eye Aspect Ratio 값
     )
 
     data class VideoResultBundle(

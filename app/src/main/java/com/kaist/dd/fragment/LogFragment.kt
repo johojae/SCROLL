@@ -55,9 +55,6 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         get() = _fragmentLogBinding!!
     private lateinit var faceLandmarkerHelper: FaceLandmarkerHelper
     private val viewModel: MainViewModel by activityViewModels()
-    private val faceBlendshapesResultAdapter by lazy {
-        FaceBlendshapesResultAdapter()
-    }
 
     /** Blocking ML operations are performed using this executor */
     private lateinit var backgroundExecutor: ScheduledExecutorService
@@ -94,15 +91,18 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        fragmentLogBinding.fabGetContent.setOnClickListener {
-            getContent.launch(arrayOf("image/*", "video/*"))
-        }
+
+        //fragmentLogBinding.fabGetContent.setOnClickListener {
+        //    getContent.launch(arrayOf("image/*", "video/*"))
+        //}
+        /*
         with(fragmentLogBinding.recyclerviewResults) {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = faceBlendshapesResultAdapter
         }
 
         initBottomSheetControls()
+         */
     }
 
     override fun onPause() {
@@ -114,13 +114,16 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         fragmentLogBinding.imageResult.visibility = View.GONE
         fragmentLogBinding.tvPlaceholder.visibility = View.VISIBLE
 
+        /*
         activity?.runOnUiThread {
             faceBlendshapesResultAdapter.updateResults(null)
             faceBlendshapesResultAdapter.notifyDataSetChanged()
         }
+         */
         super.onPause()
     }
 
+    /*
     private fun initBottomSheetControls() {
         // init bottom sheet settings
         fragmentLogBinding.bottomSheetLayout.maxFacesValue.text =
@@ -234,6 +237,7 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                 }
             }
     }
+     */
 
     // Update the values displayed in the bottom sheet. Reset detector.
     private fun updateControlsUi() {
@@ -243,6 +247,7 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         fragmentLogBinding.videoView.visibility = View.GONE
         fragmentLogBinding.imageResult.visibility = View.GONE
         fragmentLogBinding.overlay.clear()
+        /*
         fragmentLogBinding.bottomSheetLayout.maxFacesValue.text =
             viewModel.currentMaxFaces.toString()
         fragmentLogBinding.bottomSheetLayout.detectionThresholdValue.text =
@@ -257,6 +262,7 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
             String.format(
                 Locale.US, "%.2f", viewModel.currentMinFacePresenceConfidence
             )
+         */
 
         fragmentLogBinding.overlay.clear()
         fragmentLogBinding.tvPlaceholder.visibility = View.VISIBLE
@@ -299,10 +305,12 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
                     faceLandmarkerHelper.detectImage(bitmap)?.let { result ->
                         activity?.runOnUiThread {
+                            /*
                             if (fragmentLogBinding.recyclerviewResults.scrollState != ViewPager2.SCROLL_STATE_DRAGGING) {
                                 faceBlendshapesResultAdapter.updateResults(result.result)
                                 faceBlendshapesResultAdapter.notifyDataSetChanged()
                             }
+                             */
                             fragmentLogBinding.overlay.setResults(
                                 result.result,
                                 bitmap.height,
@@ -311,8 +319,11 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                             )
 
                             setUiEnabled(true)
+                            /*
                             fragmentLogBinding.bottomSheetLayout.inferenceTimeVal.text =
                                 String.format("%d ms", result.inferenceTime)
+
+                             */
                         }
                     } ?: run { Log.e(TAG, "Error running face landmarker.") }
 
@@ -389,15 +400,20 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                             RunningMode.VIDEO
                         )
 
+                        /*
                         if (fragmentLogBinding.recyclerviewResults.scrollState != ViewPager2.SCROLL_STATE_DRAGGING) {
                             faceBlendshapesResultAdapter.updateResults(result.results[resultIndex])
                             faceBlendshapesResultAdapter.notifyDataSetChanged()
                         }
+                         */
 
                         setUiEnabled(true)
 
+                        /*
                         fragmentLogBinding.bottomSheetLayout.inferenceTimeVal.text =
                             String.format("%d ms", result.inferenceTime)
+
+                         */
                     }
                 }
             },
@@ -428,6 +444,7 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
     }
 
     private fun setUiEnabled(enabled: Boolean) {
+        /*
         fragmentLogBinding.fabGetContent.isEnabled = enabled
         fragmentLogBinding.bottomSheetLayout.detectionThresholdMinus.isEnabled =
             enabled
@@ -447,6 +464,8 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
             enabled
         fragmentLogBinding.bottomSheetLayout.spinnerDelegate.isEnabled =
             enabled
+
+         */
     }
 
     private fun classifyingError() {
@@ -458,15 +477,17 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
     }
 
     override fun onError(error: String, errorCode: Int) {
-        classifyingError()
+        //classifyingError()
         activity?.runOnUiThread {
             Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+            /*
             if (errorCode == FaceLandmarkerHelper.GPU_ERROR) {
                 fragmentLogBinding.bottomSheetLayout.spinnerDelegate.setSelection(
                     FaceLandmarkerHelper.DELEGATE_CPU,
                     false
                 )
             }
+             */
         }
     }
 
@@ -479,5 +500,15 @@ class LogFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
         // Value used to get frames at specific intervals for inference (e.g. every 300ms)
         private const val VIDEO_INTERVAL_MS = 300L
+    }
+
+    override fun onEmpty() {
+        fragmentLogBinding.overlay.clear()
+        /*
+        activity?.runOnUiThread {
+            faceBlendshapesResultAdapter.updateResults(null)
+            faceBlendshapesResultAdapter.notifyDataSetChanged()
+        }
+         */
     }
 }

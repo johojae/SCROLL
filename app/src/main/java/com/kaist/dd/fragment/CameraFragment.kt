@@ -47,7 +47,20 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
+import androidx.core.app.NotificationCompat //Android 13 이상일 경우 추가 필요
+
 class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
+
+    // 추가 variable
+    var avgEAR: Double = 0.0
+    private var isSleeping = false
+    private var status: String = "awake" // Default status is awake
+    private var sleepingStartTime: Long = 0
+    //-----------------------
 
     companion object {
         private const val TAG = "Face Landmarker"
@@ -60,10 +73,6 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
     private lateinit var faceLandmarkerHelper: FaceLandmarkerHelper
     private val viewModel: MainViewModel by activityViewModels()
-    private val faceBlendshapesResultAdapter by lazy {
-        FaceBlendshapesResultAdapter()
-    }
-
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
@@ -132,10 +141,12 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        /*
         with(fragmentCameraBinding.recyclerviewResults) {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = faceBlendshapesResultAdapter
         }
+         */
 
         // Initialize our background executor
         backgroundExecutor = Executors.newSingleThreadExecutor()
@@ -161,9 +172,10 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         }
 
         // Attach listeners to UI control widgets
-        initBottomSheetControls()
+        //initBottomSheetControls()
     }
 
+/*
     private fun initBottomSheetControls() {
         // init bottom sheet settings
         fragmentCameraBinding.bottomSheetLayout.maxFacesValue.text =
@@ -304,6 +316,8 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         fragmentCameraBinding.overlay.clear()
     }
 
+ */
+
     // Initialize CameraX, and prepare to bind the camera use cases
     private fun setUpCamera() {
         val cameraProviderFuture =
@@ -317,6 +331,35 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                 bindCameraUseCases()
             }, ContextCompat.getMainExecutor(requireContext())
         )
+    }
+
+//졸음 감지시 알림
+    private fun showSleepNotification() {
+        val channelId = "sleep_notification_channel"
+        val notificationId = 1
+
+        val notificationManager =
+            requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        // Create the notification channel (required for Android 8.0 and above)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                "Sleep Detection Notification",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val notification = NotificationCompat.Builder(requireContext(), channelId)
+            .setContentTitle("Sleep Alert")
+            .setContentText("You seem to be falling asleep! Please take a break.")
+            .setSmallIcon(android.R.drawable.ic_dialog_alert) // Use a system-provided icon
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        // Show the notification
+        notificationManager.notify(notificationId, notification)
     }
 
     // Declare and bind preview, capture and analysis use cases
@@ -387,15 +430,6 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
     ) {
         activity?.runOnUiThread {
             if (_fragmentCameraBinding != null) {
-                if (fragmentCameraBinding.recyclerviewResults.scrollState != SCROLL_STATE_DRAGGING) {
-                    faceBlendshapesResultAdapter.updateResults(resultBundle.result)
-                    faceBlendshapesResultAdapter.notifyDataSetChanged()
-                }
-
-
-                fragmentCameraBinding.bottomSheetLayout.inferenceTimeVal.text =
-                    String.format("%d ms", resultBundle.inferenceTime)
-
                 // Pass necessary information to OverlayView for drawing on the canvas
                 fragmentCameraBinding.overlay.setResults(
                     resultBundle.result,
@@ -403,23 +437,54 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                     resultBundle.inputImageWidth,
                     RunningMode.LIVE_STREAM
                 )
+
                 // Force a redraw
                 fragmentCameraBinding.overlay.invalidate()
+                avgEAR = resultBundle.avgEAR
+
+                if (avgEAR < 0.14) {
+                    if (!isSleeping) {
+                        // If avgEAR is below 0.16 for the first time, start the timer
+                        sleepingStartTime = System.currentTimeMillis()
+                        isSleeping = true
+                    } else {
+                        // If avgEAR is still below 0.16, check if 5 seconds have passed
+                        val currentTime = System.currentTimeMillis()
+                        val timeDifference = currentTime - sleepingStartTime
+                        if (timeDifference >= 3000) {
+                            // If 5 seconds have passed, set status to "sleep"
+                            status = "sleep"
+                        }
+                    }
+                } else {
+                    // If avgEAR is above or equal to 0.16, reset the timer and status
+                    isSleeping = false
+                    sleepingStartTime = 0
+                    status = "awake"
+                }
+
+                fragmentCameraBinding.statusTextView.text = status
+                if (status == "sleep") {
+                    showSleepNotification()
+                }
             }
         }
     }
 
     override fun onEmpty() {
         fragmentCameraBinding.overlay.clear()
+        /*
         activity?.runOnUiThread {
             faceBlendshapesResultAdapter.updateResults(null)
             faceBlendshapesResultAdapter.notifyDataSetChanged()
         }
+         */
     }
 
     override fun onError(error: String, errorCode: Int) {
         activity?.runOnUiThread {
             Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+            /*
             faceBlendshapesResultAdapter.updateResults(null)
             faceBlendshapesResultAdapter.notifyDataSetChanged()
 
@@ -428,6 +493,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                     FaceLandmarkerHelper.DELEGATE_CPU, false
                 )
             }
+             */
         }
     }
 }
