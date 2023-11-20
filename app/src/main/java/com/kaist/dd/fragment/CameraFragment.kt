@@ -65,7 +65,9 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
     private var isSleeping = false
     private var status: String = "awake" // Default status is awake
     private var sleepingStartTime: Long = 0
+    private var awakeStartTime: Long = 0
     private var isShowFaceUndetectedAlert: Boolean = false
+    private var sleepingCount: Int = 0
     //-----------------------
 
     companion object {
@@ -452,6 +454,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                 fragmentCameraBinding.overlay.invalidate()
                 avgEAR = resultBundle.avgEAR
 
+                /* Original code
                 if (avgEAR < 0.14) {
                     if (!isSleeping) {
                         // If avgEAR is below 0.16 for the first time, start the timer
@@ -472,11 +475,79 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                     sleepingStartTime = 0
                     status = "awake"
                 }
+                */
+
+                //3 step detection
+                if(avgEAR < 0.14)
+                {
+                    if(sleepingStartTime == 0L)
+                    {
+                        sleepingStartTime = System.currentTimeMillis()
+                    }
+                    else {
+
+                        val currentTime = System.currentTimeMillis()
+                        val timeDifference = currentTime - sleepingStartTime
+
+                        if(timeDifference >= 4800)
+                        {
+                            awakeStartTime = 0
+                            sleepingStartTime = 0
+                            sleepingCount++
+                        }
+                    }
+
+                    if(sleepingCount == 0) {
+                        status = "awake"
+                    }
+                    else if(sleepingCount == 1){
+                        status = "caution"
+                    }
+                    else if(sleepingCount == 3){
+                        status = "warning"
+                    }
+                    else if(sleepingCount >= 5){
+                        status = "danger"
+                    }
+                }
+                else {
+                    sleepingStartTime = 0
+
+                    if(awakeStartTime == 0L)
+                    {
+                        awakeStartTime = System.currentTimeMillis()
+                    }
+                    else
+                    {
+                        val currentTime = System.currentTimeMillis()
+                        val timeDifference = currentTime - awakeStartTime
+
+                        if(timeDifference >= 10000){
+                            awakeStartTime = 0
+
+                            if(sleepingCount >= 1){
+                                sleepingCount--
+                            }
+                            if(sleepingCount == 0) {
+                                status = "awake"
+                            }
+                            else if(sleepingCount == 1){
+                                status = "caution"
+                            }
+                            else if(sleepingCount == 3){
+                                status = "warning"
+                            }
+                            else if(sleepingCount >= 5){
+                                status = "danger"
+                            }
+                        }
+                    }
+                }
 
                 fragmentCameraBinding.statusTextView.text = status
-                if (status == "sleep") {
-                    showSleepNotification()
-                }
+                //if (status == "sleep") {
+                //    showSleepNotification()
+                //}
             }
         }
     }
