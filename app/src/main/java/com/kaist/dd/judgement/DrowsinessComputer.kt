@@ -21,6 +21,16 @@ class DrowsinessComputer(
     private var firstDetectedTime: LocalDateTime? = null
     public var historyList = mutableListOf<LocalDateTime>()
 
+    fun measureLevel(ear: Double): Char {
+        return if (ear < 0.14) {
+            'c'
+        } else if (ear < 0.18) {
+            'b'
+        } else {
+            'a'
+        }
+    }
+
     fun resetDetect() {
         firstDetectedTime = null
     }

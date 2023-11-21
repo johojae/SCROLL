@@ -308,10 +308,11 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                 // Force a redraw
                 fragmentCameraBinding.overlay.invalidate()
                 avgEAR = resultBundle.avgEAR
+                val level = drowsinessComputer.measureLevel(avgEAR)
 
                 //3 step detection
                 val currentTime = LocalDateTime.now()
-                if(avgEAR < 0.14) {
+                if(level == 'c') {
                     drowsinessComputer.apply(currentTime)
                 } else {
                     drowsinessComputer.resetDetect()
@@ -324,7 +325,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                     alertMediaHelper.playMedia(status.value)
                 }
 
-                val text = "%s: %d".format(status.name,
+                val text = "%s-%c-%d".format(status.name, level,
                     drowsinessComputer.historyList.size)
 
                 fragmentCameraBinding.statusTextView.text = text
