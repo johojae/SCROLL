@@ -67,7 +67,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
     private var sleepingCount: Int = 0
 
     private var status = DrowsinessComputer.Status.STATUS_AWAKE
-    private val drowsinessComputer = DrowsinessComputer(3, 0, seconds = 5)
+    private val drowsinessComputer = DrowsinessComputer(3, 0, seconds = 10)
     private var lastStatus = DrowsinessComputer.Status.STATUS_AWAKE
     //-----------------------
 
@@ -321,7 +321,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                 status = drowsinessComputer.judge(currentTime)
 
                 if (status != DrowsinessComputer.Status.STATUS_AWAKE &&
-                    lastStatus.value != status.value) {
+                    lastStatus.value < status.value) {
                     alertMediaHelper.playMedia(status.value)
                 }
 
