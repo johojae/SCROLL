@@ -17,54 +17,50 @@ package com.kaist.dd.fragment
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
 import android.content.res.Configuration
+import android.media.RingtoneManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.camera.core.Preview
+import androidx.camera.core.AspectRatio
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
-import androidx.camera.core.Camera
-import androidx.camera.core.AspectRatio
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.Navigation
+import com.google.mediapipe.tasks.vision.core.RunningMode
+import com.kaist.dd.AlertMediaHelper
+import com.kaist.dd.DatabaseHelper
 import com.kaist.dd.FaceLandmarkerHelper
 import com.kaist.dd.MainViewModel
 import com.kaist.dd.R
 import com.kaist.dd.databinding.FragmentCameraBinding
-import com.google.mediapipe.tasks.vision.core.RunningMode
+import com.kaist.dd.judgement.DrowsinessComputer
+import java.time.LocalDateTime
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
-import android.content.DialogInterface
-import android.media.RingtoneManager
-import android.net.Uri
-import android.os.Build
-import androidx.core.app.NotificationCompat //Android 13 이상일 경우 추가 필요
-import com.kaist.dd.AlertMediaHelper
-import com.kaist.dd.judgement.DrowsinessComputer
-import java.time.LocalDateTime
 
 class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
     // 추가 variable
     var avgEAR: Double = 0.0
-    private var isSleeping = false
-    private var sleepingStartTime: Long = 0
-    private var awakeStartTime: Long = 0
     private var isShowFaceUndetectedAlert: Boolean = false
-    private var sleepingCount: Int = 0
 
     private var status = DrowsinessComputer.Status.STATUS_AWAKE
     private val drowsinessComputer = DrowsinessComputer(3, 0, seconds = 10)
@@ -82,6 +78,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
     private lateinit var faceLandmarkerHelper: FaceLandmarkerHelper
     private lateinit var alertMediaHelper: AlertMediaHelper
+    private lateinit var databaseHelper: DatabaseHelper
     private val viewModel: MainViewModel by activityViewModels()
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
@@ -94,14 +91,6 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
     override fun onResume() {
         super.onResume()
-        // Make sure that all permissions are still present, since the
-        // user could have removed them while the app was in paused state.
-        if (!PermissionsFragment.hasPermissions(requireContext())) {
-            Navigation.findNavController(
-                requireActivity(), R.id.fragment_container
-            ).navigate(R.id.action_camera_to_permissions)
-        }
-
         // Start the FaceLandmarkerHelper again when users come back
         // to the foreground.
         backgroundExecutor.execute {
@@ -144,19 +133,21 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         _fragmentCameraBinding =
             FragmentCameraBinding.inflate(inflater, container, false)
 
+        _fragmentCameraBinding!!.switchCamera.setOnClickListener {
+            cameraFacing = if (cameraFacing == CameraSelector.LENS_FACING_FRONT) {
+                CameraSelector.LENS_FACING_BACK
+            } else {
+                CameraSelector.LENS_FACING_FRONT
+            }
+            bindCameraUseCases()
+        }
+
         return fragmentCameraBinding.root
     }
 
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        /*
-        with(fragmentCameraBinding.recyclerviewResults) {
-            layoutManager = LinearLayoutManager(requireContext())
-            adapter = faceBlendshapesResultAdapter
-        }
-         */
 
         // Initialize our background executor
         backgroundExecutor = Executors.newSingleThreadExecutor()
@@ -182,6 +173,9 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
             alertMediaHelper = AlertMediaHelper(
                 context = requireContext()
             )
+            databaseHelper = DatabaseHelper(
+                context = requireContext()
+            )
         }
     }
 
@@ -198,35 +192,6 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                 bindCameraUseCases()
             }, ContextCompat.getMainExecutor(requireContext())
         )
-    }
-
-//졸음 감지시 알림
-    private fun showSleepNotification() {
-        val channelId = "sleep_notification_channel"
-        val notificationId = 1
-
-        val notificationManager =
-            requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        // Create the notification channel (required for Android 8.0 and above)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "Sleep Detection Notification",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
-
-        val notification = NotificationCompat.Builder(requireContext(), channelId)
-            .setContentTitle("Sleep Alert")
-            .setContentText("You seem to be falling asleep! Please take a break.")
-            .setSmallIcon(android.R.drawable.ic_dialog_alert) // Use a system-provided icon
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .build()
-
-        // Show the notification
-        notificationManager.notify(notificationId, notification)
     }
 
     // Declare and bind preview, capture and analysis use cases
@@ -323,6 +288,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                 if (status != DrowsinessComputer.Status.STATUS_AWAKE &&
                     lastStatus.value < status.value) {
                     alertMediaHelper.playMedia(status.value)
+                    databaseHelper.addLog(status.value + 1)
                 }
 
                 val text = "%s-%c-%d".format(status.name, level,
@@ -336,27 +302,11 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
     override fun onEmpty() {
         fragmentCameraBinding.overlay.clear()
-        /*
-        activity?.runOnUiThread {
-            faceBlendshapesResultAdapter.updateResults(null)
-            faceBlendshapesResultAdapter.notifyDataSetChanged()
-        }
-         */
     }
 
     override fun onError(error: String, errorCode: Int) {
         activity?.runOnUiThread {
             Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
-            /*
-            faceBlendshapesResultAdapter.updateResults(null)
-            faceBlendshapesResultAdapter.notifyDataSetChanged()
-
-            if (errorCode == FaceLandmarkerHelper.GPU_ERROR) {
-                fragmentCameraBinding.bottomSheetLayout.spinnerDelegate.setSelection(
-                    FaceLandmarkerHelper.DELEGATE_CPU, false
-                )
-            }
-             */
         }
     }
 
@@ -384,9 +334,6 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         }
         builder.show()
         playRingtone()
-//        alertMediaHelper.playMedia(1)
-//        alertMediaHelper.playMedia(2)
-//        alertMediaHelper.playMedia(3)
 
         isShowFaceUndetectedAlert = true
         faceLandmarkerHelper.setActiveFaceDetect(false)

@@ -15,7 +15,7 @@
  */
 package com.kaist.dd
 
-import android.app.AlertDialog
+//Eye 좌표 계산
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -32,8 +32,6 @@ import com.google.mediapipe.tasks.core.Delegate
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
-
-//Eye 좌표 계산
 import kotlin.math.pow
 import kotlin.math.sqrt
 

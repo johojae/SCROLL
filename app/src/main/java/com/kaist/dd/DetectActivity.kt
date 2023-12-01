@@ -15,29 +15,50 @@
  */
 package com.kaist.dd
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.commit
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.kaist.dd.databinding.ActivityDetectBinding
-import com.kaist.dd.databinding.ActivityMainBinding
+import com.kaist.dd.fragment.CameraFragment
+import com.kaist.dd.fragment.LogFragment
 
 class DetectActivity : AppCompatActivity() {
     private lateinit var activityDetectBinding: ActivityDetectBinding
-    private val viewModel : MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityDetectBinding = ActivityDetectBinding.inflate(layoutInflater)
         setContentView(activityDetectBinding.root)
 
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
-        val navController = navHostFragment.navController
-        activityDetectBinding.navigation.setupWithNavController(navController)
-        activityDetectBinding.navigation.setOnNavigationItemReselectedListener {
-            // ignore the reselection
+        supportFragmentManager.beginTransaction().replace(R.id.fragment_container,
+            CameraFragment()).commitAllowingStateLoss()
+
+        activityDetectBinding.navigation.selectedItemId = R.id.tab_camera
+        activityDetectBinding.navigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.tab_home -> {
+                    val intent = Intent(this, MainActivity::class.java)
+                    finishAffinity()
+                    startActivity(intent)
+                    return@setOnItemSelectedListener true
+                }
+                R.id.tab_camera -> {
+                    supportFragmentManager.beginTransaction().replace(R.id.fragment_container,
+                        CameraFragment()).commitAllowingStateLoss()
+                    return@setOnItemSelectedListener true
+                }
+                R.id.tab_log -> {
+                    supportFragmentManager.beginTransaction().replace(R.id.fragment_container,
+                        LogFragment()).commitAllowingStateLoss()
+                    return@setOnItemSelectedListener true
+                }
+                else -> {
+                    false
+                }
+            }
         }
     }
 
