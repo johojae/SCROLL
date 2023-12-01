@@ -60,6 +60,13 @@ class DetectActivity : AppCompatActivity() {
                 }
             }
         }
+        activityDetectBinding.navigation.setOnItemReselectedListener { item ->
+            when (item.itemId) {
+                R.id.tab_home -> {}
+                R.id.tab_camera -> {}
+                R.id.tab_log -> {}
+            }
+        }
     }
 
     override fun onBackPressed() {

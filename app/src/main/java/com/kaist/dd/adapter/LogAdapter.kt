@@ -8,7 +8,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.kaist.dd.data.LogData
 
 class LogAdapter (val context: Context) :
     RecyclerView.Adapter<LogAdapter.ViewHolder> () {
