@@ -18,9 +18,6 @@ package com.kaist.dd
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.commit
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
 import com.kaist.dd.databinding.ActivityDetectBinding
 import com.kaist.dd.fragment.CameraFragment
 import com.kaist.dd.fragment.LogFragment
