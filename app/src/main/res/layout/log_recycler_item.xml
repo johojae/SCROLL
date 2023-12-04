@@ -22,12 +22,12 @@
     <TextView
         android:id="@+id/label_level_text"
         android:layout_width="255dp"
-        android:layout_height="36dp"
+        android:layout_height="30dp"
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="20dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="2dp"
         android:textColor="#ffffff"
-        android:textSize="26dp"
+        android:textSize="24dp"
         android:textStyle="bold"
         app:layout_constraintLeft_toRightOf="@id/label_level_img"
         app:layout_constraintTop_toTopOf="parent" />
@@ -35,7 +35,7 @@
     <TextView
         android:id="@+id/label_date_text"
         android:layout_width="255dp"
-        android:layout_height="30dp"
+        android:layout_height="24dp"
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="20dp"
         android:layout_marginTop="4dp"
@@ -43,4 +43,16 @@
         android:textSize="18dp"
         app:layout_constraintLeft_toRightOf="@id/label_level_img"
         app:layout_constraintTop_toBottomOf="@id/label_level_text" />
+
+    <TextView
+        android:id="@+id/label_running_text"
+        android:layout_width="255dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="4dp"
+        android:textColor="#ffffff"
+        android:textSize="18dp"
+        app:layout_constraintLeft_toRightOf="@id/label_level_img"
+        app:layout_constraintTop_toBottomOf="@id/label_date_text" />
 </androidx.constraintlayout.widget.ConstraintLayout>

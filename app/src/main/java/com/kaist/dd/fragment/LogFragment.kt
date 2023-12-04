@@ -30,7 +30,6 @@ class LogFragment : Fragment() {
     private val fragmentLogBinding get() = _fragmentLogBinding!!
     private lateinit var databaseHelper: DatabaseHelper
     private lateinit var logAdapter: LogAdapter
-//    private var datas = mutableListOf<LogData>()
 
     override fun onCreateView(
         inflater: LayoutInflater,

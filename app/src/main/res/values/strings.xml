@@ -21,4 +21,8 @@
     <string name="face_undetected_message">사용자의 얼굴을 앱에서 인식할 수 없습니다. 인식하는 카메라(전/후면)의 위치를 변경하거나 스마트폰의 방향을 조정해 주세요.</string>
     <string name="face_undetected_button">확인</string>
     <string name="main_start_button">졸음감지 시작하기</string>
+    <string name="running_time">운행 시간</string>
+    <string name="menu_home">홈</string>
+    <string name="menu_camera">카메라</string>
+    <string name="menu_log">로그</string>
 </resources>

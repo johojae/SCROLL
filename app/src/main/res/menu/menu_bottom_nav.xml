@@ -6,19 +6,19 @@
         android:icon="@drawable/ic_tab_home_b"
         android:checked="true"
         android:enabled="true"
-        android:title="홈" />
+        android:title="@string/menu_home" />
 
     <item
         android:id="@+id/tab_camera"
         android:icon="@drawable/ic_tab_camera_b"
         android:checked="true"
         android:enabled="true"
-        android:title="카메라" />
+        android:title="@string/menu_camera" />
 
     <item
         android:id="@+id/tab_log"
         android:icon="@drawable/ic_tab_article_b"
         android:checked="true"
         android:enabled="true"
-        android:title="로그" />
+        android:title="@string/menu_log" />
 </menu>
