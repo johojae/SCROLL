@@ -54,6 +54,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
     // 추가 variable
     var avgEAR: Double = 0.0
+    private var earCounter: Int = 0
     private var isShowFaceUndetectedAlert: Boolean = false
     private var status = DrowsinessComputer.Status.STATUS_AWAKE
     private val drowsinessComputer = DrowsinessComputer(3, 0, seconds = 10)
@@ -284,7 +285,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                 if (status != DrowsinessComputer.Status.STATUS_AWAKE &&
                     lastStatus.value < status.value) {
                     alertMediaHelper.playMedia(status.value)
-                    databaseHelper.addLog(status.value + 1, cameraStartTime)
+                    databaseHelper.addAlertLog(status.value + 1, cameraStartTime)
                 }
 
                 val text = "%s-%c-%d".format(status.name, level,
@@ -292,6 +293,12 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
                 fragmentCameraBinding.statusTextView.text = text
                 lastStatus = status
+
+                earCounter++
+                if (earCounter == 15) {
+                    earCounter = 0
+                    databaseHelper.addEarLog(avgEAR)
+                }
             }
         }
     }

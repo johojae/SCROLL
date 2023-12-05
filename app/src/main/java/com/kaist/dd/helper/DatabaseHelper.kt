@@ -15,13 +15,15 @@ class DatabaseHelper (val context: Context) :
 
     companion object {
         private const val DATABASE_VERSION = 1
-        private const val DATABASE_NAME = "LogDatabase"
-        private const val TABLE_NAME = "drowsiness"
+        private const val DATABASE_NAME = "drowsinessDatabase"
+        private const val ALERT_TABLE_NAME = "drowsinessAlert"
+        private const val EAR_TABLE_NAME = "drowsinessEar"
 
         // Column names
         private const val COLUMN_TIMESTAMP = "timestamp"
         private const val COLUMN_LEVEL = "level"
         private const val COLUMN_RUNNING = "running"
+        private const val COLUMN_EAR = "ear"
     }
 
     init {
@@ -38,15 +40,22 @@ class DatabaseHelper (val context: Context) :
     }
 
     private fun createTable(db: SQLiteDatabase) {
-        val createTableQuery = """
-            CREATE TABLE IF NOT EXISTS $TABLE_NAME (
+        val createTableQuery1 = """
+            CREATE TABLE IF NOT EXISTS $ALERT_TABLE_NAME (
                 $COLUMN_TIMESTAMP TEXT,
                 $COLUMN_RUNNING TEXT,
                 $COLUMN_LEVEL INTEGER
             )
         """.trimIndent()
+        db.execSQL(createTableQuery1)
 
-        db.execSQL(createTableQuery)
+        val createTableQuery2 = """
+            CREATE TABLE IF NOT EXISTS $EAR_TABLE_NAME (
+                $COLUMN_TIMESTAMP TEXT,
+                $COLUMN_EAR REAL
+            )
+        """.trimIndent()
+        db.execSQL(createTableQuery2)
     }
 
     private fun setFormatTimeMillis(timeMillis: Long): String {
@@ -57,7 +66,7 @@ class DatabaseHelper (val context: Context) :
         return String.format("%02d:%02d:%02d", hours, minutes, seconds)
     }
 
-    fun addLog(level: Int, startTime: Long) {
+    fun addAlertLog(level: Int, startTime: Long) {
         val db = this.writableDatabase
         val values = ContentValues()
 
@@ -72,22 +81,37 @@ class DatabaseHelper (val context: Context) :
         values.put(COLUMN_RUNNING, running)
 
         // 데이터베이스에 로그 추가
-        db.insert(TABLE_NAME, null, values)
+        db.insert(ALERT_TABLE_NAME, null, values)
+        db.close()
+    }
+
+    fun addEarLog(ear: Double) {
+        val db = this.writableDatabase
+        val values = ContentValues()
+
+        // 현재 시간을 포맷팅하여 문자열로 저장
+        val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+
+        values.put(COLUMN_TIMESTAMP, timestamp)
+        values.put(COLUMN_EAR, ear)
+
+        // 데이터베이스에 로그 추가
+        db.insert(EAR_TABLE_NAME, null, values)
         db.close()
     }
 
     @SuppressLint("Range")
-    fun getAllLogs(): List<LogData> {
-        val logList = mutableListOf<LogData>()
+    fun getAllAlertLogs(): List<AlertData> {
+        val logList = mutableListOf<AlertData>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME", null)
+        val cursor = db.rawQuery("SELECT * FROM $ALERT_TABLE_NAME", null)
 
         if (cursor.moveToFirst()) {
             do {
                 val timestamp = cursor.getString(cursor.getColumnIndex(COLUMN_TIMESTAMP))
                 val level = cursor.getInt(cursor.getColumnIndex(COLUMN_LEVEL))
                 val running = cursor.getString(cursor.getColumnIndex(COLUMN_RUNNING))
-                val log = LogData(timestamp, level, running)
+                val log = AlertData(timestamp, level, running)
                 logList.add(log)
             } while (cursor.moveToNext())
         }

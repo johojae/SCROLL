@@ -20,16 +20,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.kaist.dd.AlertData
 import com.kaist.dd.DatabaseHelper
-import com.kaist.dd.LogAdapter
-import com.kaist.dd.LogData
+import com.kaist.dd.AlertDataAdapter
 import com.kaist.dd.databinding.FragmentLogBinding
 
 class LogFragment : Fragment() {
     private var _fragmentLogBinding: FragmentLogBinding? = null
     private val fragmentLogBinding get() = _fragmentLogBinding!!
     private lateinit var databaseHelper: DatabaseHelper
-    private lateinit var logAdapter: LogAdapter
+    private lateinit var alertDataAdapter: AlertDataAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,10 +47,10 @@ class LogFragment : Fragment() {
     }
 
     private fun initRecycler() {
-        var logData = databaseHelper.getAllLogs() as MutableList<LogData>
-        logAdapter = LogAdapter(requireContext())
-        logAdapter.datas = logData
-        logAdapter.notifyDataSetChanged()
-        _fragmentLogBinding!!.logRecyclerView.adapter = logAdapter
+        var alertData = databaseHelper.getAllAlertLogs() as MutableList<AlertData>
+        alertDataAdapter = AlertDataAdapter(requireContext())
+        alertDataAdapter.datas = alertData
+        alertDataAdapter.notifyDataSetChanged()
+        _fragmentLogBinding!!.logRecyclerView.adapter = alertDataAdapter
     }
 }

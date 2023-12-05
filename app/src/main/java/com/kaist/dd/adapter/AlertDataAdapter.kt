@@ -8,12 +8,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import org.w3c.dom.Text
 
-class LogAdapter (val context: Context) :
-    RecyclerView.Adapter<LogAdapter.ViewHolder> () {
+class AlertDataAdapter (val context: Context) :
+    RecyclerView.Adapter<AlertDataAdapter.ViewHolder> () {
 
-    var datas = mutableListOf<LogData>()
+    var datas = mutableListOf<AlertData>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.log_recycler_item,parent,false)
@@ -31,7 +30,7 @@ class LogAdapter (val context: Context) :
         private val textDate: TextView = itemView.findViewById(R.id.label_date_text)
         private val textRunning: TextView = itemView.findViewById(R.id.label_running_text)
 
-        fun bind(item: LogData) {
+        fun bind(item: AlertData) {
             val img = when (item.level) {
                 1 -> R.drawable.icon_one
                 2 -> R.drawable.icon_two
