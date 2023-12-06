@@ -301,7 +301,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                 earCounter++
                 if (earCounter == 15) {
                     earCounter = 0
-                    databaseHelper.addEarLog(avgEAR)
+                    databaseHelper.addEarLog(avgEAR, status.value + 1)
                 }
             }
         }

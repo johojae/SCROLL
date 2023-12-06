@@ -52,6 +52,7 @@ class DatabaseHelper (val context: Context) :
         val createTableQuery2 = """
             CREATE TABLE IF NOT EXISTS $EAR_TABLE_NAME (
                 $COLUMN_TIMESTAMP TEXT,
+                $COLUMN_LEVEL INTEGER,
                 $COLUMN_EAR REAL
             )
         """.trimIndent()
@@ -85,7 +86,7 @@ class DatabaseHelper (val context: Context) :
         db.close()
     }
 
-    fun addEarLog(ear: Double) {
+    fun addEarLog(ear: Double, level: Int) {
         val db = this.writableDatabase
         val values = ContentValues()
 
@@ -93,6 +94,7 @@ class DatabaseHelper (val context: Context) :
         val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
 
         values.put(COLUMN_TIMESTAMP, timestamp)
+        values.put(COLUMN_LEVEL, level)
         values.put(COLUMN_EAR, ear)
 
         // 데이터베이스에 로그 추가
