@@ -130,13 +130,17 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         _fragmentCameraBinding =
             FragmentCameraBinding.inflate(inflater, container, false)
 
-        _fragmentCameraBinding!!.switchCamera.setOnClickListener {
+        _fragmentCameraBinding!!.fabCamera.setOnClickListener {
             cameraFacing = if (cameraFacing == CameraSelector.LENS_FACING_FRONT) {
                 CameraSelector.LENS_FACING_BACK
             } else {
                 CameraSelector.LENS_FACING_FRONT
             }
             bindCameraUseCases()
+        }
+
+        _fragmentCameraBinding!!.fabPredict.setOnClickListener {
+            var ears: ArrayList<Double> = databaseHelper.getLastRangeEars()
         }
 
         return fragmentCameraBinding.root

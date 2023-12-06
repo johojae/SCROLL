@@ -120,4 +120,24 @@ class DatabaseHelper (val context: Context) :
         db.close()
         return logList
     }
+
+    @SuppressLint("Range")
+    fun getLastRangeEars(): ArrayList<Double> {
+        val logList = ArrayList<Double>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM $EAR_TABLE_NAME ORDER BY $COLUMN_TIMESTAMP DESC LIMIT 60", null)
+
+        if (cursor.moveToFirst()) {
+            do {
+                val ear = cursor.getDouble(cursor.getColumnIndex(COLUMN_EAR))
+                logList.add(ear)
+            } while (cursor.moveToNext())
+        }
+        logList.reverse()
+
+        cursor.close()
+        db.close()
+
+        return logList
+    }
 }

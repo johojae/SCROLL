@@ -47,15 +47,27 @@
             android:background="#80000000" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/switchCamera"
+            android:id="@+id/fab_camera"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="true"
-            android:src="@drawable/ic_tab_camera_switch_w"
+            android:src="@drawable/ic_button_camera"
             android:backgroundTint="#66c290"
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
             android:layout_marginBottom="78dp"
+            android:layout_marginRight="24dp" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_predict"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:src="@drawable/ic_button_predict"
+            android:backgroundTint="#66c290"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginBottom="154dp"
             android:layout_marginRight="24dp" />
     </RelativeLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
