@@ -25,4 +25,10 @@
     <string name="menu_home">홈</string>
     <string name="menu_camera">카메라</string>
     <string name="menu_log">로그</string>
+    <string name="drowsy_prediction_title">졸음 운전 예상 확률</string>
+    <string name="drowsy_prediction_message_first">최근 30초 간의 운전자 눈꺼풀 상태로 예측한 졸음 운전 예상 확률 입니다.</string>
+    <string name="drowsy_prediction_message_alert_1">안전한 운행 하세요!</string>
+    <string name="drowsy_prediction_message_alert_2">주의가 요구되는 운행 입니다.</string>
+    <string name="drowsy_prediction_message_alert_3">휴게소 또는 졸음 쉼터에서 휴식을 권장 합니다.</string>
+    <string name="drowsy_prediction_button">확인</string>
 </resources>

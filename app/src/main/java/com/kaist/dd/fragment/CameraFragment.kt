@@ -141,6 +141,11 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
         _fragmentCameraBinding!!.fabPredict.setOnClickListener {
             var ears: ArrayList<Double> = databaseHelper.getLastRangeEars()
+
+            // TODO DB에서 가져온 30sec 구간의 ear 값들로 AI Model 통해 추론.
+            //  추론 결과인 졸음 운전에 대한 probability를 가져온다.
+            //  probability 값을 parameter로 alert 호출 함수(createDrowsyPredictionAlert) 를 call.
+            createDrowsyPredictionAlert(0.5)
         }
 
         return fragmentCameraBinding.root
@@ -325,6 +330,27 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
                 }
             }
         }
+    }
+
+    private fun createDrowsyPredictionAlert(probability: Double) {
+        // 최근 30sec 구간 ear 기준으로 졸음운전 확률을 Alert Dialog 로 사용자에게 알림 (AI REQ)
+        val builder:AlertDialog.Builder = AlertDialog.Builder(requireContext())
+        val alertMessage = when {
+            probability < 0.3 -> R.string.drowsy_prediction_message_alert_1
+            probability < 0.5 -> R.string.drowsy_prediction_message_alert_2
+            else -> R.string.drowsy_prediction_message_alert_3
+        }
+        val fullMessage = getString(R.string.drowsy_prediction_message_first) + "\n\n" +
+                probability.toString() + "\n\n" + getString(alertMessage)
+
+        builder.setTitle(R.string.drowsy_prediction_title)
+        builder.setMessage(fullMessage)
+        builder.setNeutralButton(R.string.drowsy_prediction_button, DialogInterface.OnClickListener { dialog, which ->
+            dialog.dismiss()
+        })
+        builder.setOnDismissListener {
+        }
+        builder.show()
     }
 
     private fun createUndetectedFaceAlert() {
