@@ -31,4 +31,7 @@
     <string name="drowsy_prediction_message_alert_2">주의가 요구되는 운행 입니다.</string>
     <string name="drowsy_prediction_message_alert_3">휴게소 또는 졸음 쉼터에서 휴식을 권장 합니다.</string>
     <string name="drowsy_prediction_button">확인</string>
+    <string name="enough_time_title">상태 감지 시간 부족</string>
+    <string name="enough_time_message">사용자의 졸음 운전 예측을 위한 상태 감지 시간이 부족합니다. 졸음 운전 예측을 위해서는 최소 30초의 감지 시간이 필요합니다.</string>
+    <string name="enough_time_button">확인</string>
 </resources>

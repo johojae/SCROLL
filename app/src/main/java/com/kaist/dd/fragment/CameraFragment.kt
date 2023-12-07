@@ -145,9 +145,15 @@ class CameraFragment : Fragment(),
         }
 
         _fragmentCameraBinding!!.fabPredict.setOnClickListener {
-            var ears: ArrayList<Double> = databaseHelper.getLastRangeEars()
-            var probability = this.prediction.predict(ears)
-            createDrowsyPredictionAlert(probability)
+            var currentTime = System.currentTimeMillis()
+
+            if (currentTime - cameraStartTime < 30 * 1000) {
+                createNotEnoughLoggingTimeAlert()
+            } else {
+                var ears: ArrayList<Double> = databaseHelper.getLastRangeEars()
+                var probability = this.prediction.predict(ears)
+                createDrowsyPredictionAlert(probability)
+            }
         }
 
         return fragmentCameraBinding.root
@@ -340,6 +346,18 @@ class CameraFragment : Fragment(),
         builder.setTitle(R.string.drowsy_prediction_title)
         builder.setMessage(fullMessage)
         builder.setNeutralButton(R.string.drowsy_prediction_button, DialogInterface.OnClickListener { dialog, which ->
+            dialog.dismiss()
+        })
+        builder.setOnDismissListener {
+        }
+        builder.show()
+    }
+
+    private fun createNotEnoughLoggingTimeAlert() {
+        val builder:AlertDialog.Builder = AlertDialog.Builder(requireContext())
+        builder.setTitle(R.string.enough_time_title)
+        builder.setMessage(R.string.enough_time_message)
+        builder.setNeutralButton(R.string.enough_time_button, DialogInterface.OnClickListener { dialog, which ->
             dialog.dismiss()
         })
         builder.setOnDismissListener {
