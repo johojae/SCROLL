@@ -45,24 +45,27 @@ import com.kaist.dd.MainViewModel
 import com.kaist.dd.R
 import com.kaist.dd.databinding.FragmentCameraBinding
 import com.kaist.dd.judgement.DrowsinessComputer
+import com.kaist.dd.judgement.FaceDetection
 import com.kaist.dd.judgement.Prediction
-import java.time.LocalDateTime
+import com.kaist.dd.judgement.DrowsinessStatus
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
+class CameraFragment : Fragment(),
+    FaceLandmarkerHelper.LandmarkerListener,
+    FaceDetection.FaceDetectListener,
+    DrowsinessStatus.DrowsinessStatusListener {
 
     // 추가 variable
     var avgEAR: Double = 0.0
     private var earCounter: Int = 0
     private var isShowFaceUndetectedAlert: Boolean = false
-    private var status = DrowsinessComputer.Status.STATUS_AWAKE
-    private val drowsinessComputer = DrowsinessComputer(3, 0, seconds = 10)
-    private var lastStatus = DrowsinessComputer.Status.STATUS_AWAKE
     private var cameraStartTime: Long = 0
-    //-----------------------
+
     private lateinit var prediction: Prediction
+    private lateinit var faceDetection: FaceDetection
+    private lateinit var drowsinessStatus: DrowsinessStatus
 
     companion object {
         private const val TAG = "Face Landmarker"
@@ -181,8 +184,16 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
             databaseHelper = DatabaseHelper(
                 context = requireContext()
             )
-
-            prediction = Prediction(context = requireContext(), "model.ptl")
+            prediction = Prediction(
+                context = requireContext(),
+                "model.ptl"
+            )
+            faceDetection = FaceDetection(
+                faceDetectListener = this
+            )
+            drowsinessStatus = DrowsinessStatus(
+                drowsinessStatusListener = this
+            )
         }
     }
 
@@ -279,35 +290,24 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
                 // Force a redraw
                 fragmentCameraBinding.overlay.invalidate()
+
+                // Average EAR value of left and right eyes
                 avgEAR = resultBundle.avgEAR
-                val level = drowsinessComputer.measureLevel(avgEAR)
 
-                //3 step detection
-                val currentTime = LocalDateTime.now()
-                if(level == 'c') {
-                    drowsinessComputer.apply(currentTime)
-                } else {
-                    drowsinessComputer.resetDetect()
-                }
+                // Update and determine current drowsy driving status with avgEAR value
+                drowsinessStatus.updateStatus(avgEAR)
 
-                status = drowsinessComputer.judge(currentTime)
+                // Update status display on screen
+                fragmentCameraBinding.statusTextView.text = drowsinessStatus.getStatusText()
 
-                if (status != DrowsinessComputer.Status.STATUS_AWAKE &&
-                    lastStatus.value < status.value) {
-                    alertMediaHelper.playMedia(status.value)
-                    databaseHelper.addAlertLog(status.value + 1, cameraStartTime)
-                }
+                // update face detection status
+                faceDetection.setDetectedFace()
 
-                val text = "%s-%c-%d".format(status.name, level,
-                    drowsinessComputer.historyList.size)
-
-                fragmentCameraBinding.statusTextView.text = text
-                lastStatus = status
-
+                // add ear value log to database
                 earCounter++
                 if (earCounter == 15) {
                     earCounter = 0
-                    databaseHelper.addEarLog(avgEAR, status.value + 1)
+                    databaseHelper.addEarLog(avgEAR, drowsinessStatus.getStatus().value + 1)
                 }
             }
         }
@@ -315,21 +315,14 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
     override fun onEmpty() {
         fragmentCameraBinding.overlay.clear()
+
+        // update face detection status
+        faceDetection.setNotDetectedFace()
     }
 
     override fun onError(error: String, errorCode: Int) {
         activity?.runOnUiThread {
             Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun onUndetectedFace() {
-        activity?.runOnUiThread {
-            if (_fragmentCameraBinding != null) {
-                if (!isShowFaceUndetectedAlert) {
-                    createUndetectedFaceAlert()
-                }
-            }
         }
     }
 
@@ -354,28 +347,39 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
         builder.show()
     }
 
-    private fun createUndetectedFaceAlert() {
-        // Face 미 인식에 대한 Time-out 발생 시, Alert Dialog 로 사용자에게 알림 (REQ-DD-004)
-        val builder:AlertDialog.Builder = AlertDialog.Builder(requireContext())
-        builder.setTitle(R.string.face_undetected_title)
-        builder.setMessage(R.string.face_undetected_message)
-        builder.setNeutralButton(R.string.face_undetected_button, DialogInterface.OnClickListener { dialog, which ->
-            dialog.dismiss()
-        })
-        builder.setOnDismissListener {
-            isShowFaceUndetectedAlert = false
-            faceLandmarkerHelper.setActiveFaceDetect(true)
-        }
-        builder.show()
-        playRingtone()
-
-        isShowFaceUndetectedAlert = true
-        faceLandmarkerHelper.setActiveFaceDetect(false)
-    }
-
     private fun playRingtone() {
         val notification: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val ringtone = RingtoneManager.getRingtone(requireContext(), notification)
         ringtone.play()
+    }
+
+    override fun showFaceNotDetectedAlert() {
+        activity?.runOnUiThread {
+            if (!isShowFaceUndetectedAlert) {
+                // Face 미 인식에 대한 Time-out 발생 시, Alert Dialog 로 사용자에게 알림 (REQ-DD-004)
+                val builder: AlertDialog.Builder = AlertDialog.Builder(requireContext())
+                builder.setTitle(R.string.face_undetected_title)
+                builder.setMessage(R.string.face_undetected_message)
+                builder.setNeutralButton(
+                    R.string.face_undetected_button,
+                    DialogInterface.OnClickListener { dialog, which ->
+                        dialog.dismiss()
+                    })
+                builder.setOnDismissListener {
+                    isShowFaceUndetectedAlert = false
+                    faceDetection.setActiveFaceDetect(true)
+                }
+                builder.show()
+                playRingtone()
+
+                isShowFaceUndetectedAlert = true
+                faceDetection.setActiveFaceDetect(false)
+            }
+        }
+    }
+
+    override fun updateMoreDangerousStatus(status: DrowsinessComputer.Status) {
+        alertMediaHelper.playMedia(status.value)
+        databaseHelper.addAlertLog(status.value + 1, cameraStartTime)
     }
 }
