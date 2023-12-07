@@ -25,7 +25,7 @@ android {
 
     defaultConfig {
         applicationId "com.kaist.dd"
-        minSdk 24
+        minSdk 29
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -59,6 +59,8 @@ project.ext.ASSET_DIR = projectDir.toString() + '/src/main/assets'
 apply from: 'download_tasks.gradle'
 
 dependencies {
+    // pytorch
+    implementation("org.pytorch:pytorch_android_lite:2.1.0")
 
     // Kotlin lang
     implementation 'androidx.core:core-ktx:1.8.0'

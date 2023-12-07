@@ -45,6 +45,7 @@ import com.kaist.dd.MainViewModel
 import com.kaist.dd.R
 import com.kaist.dd.databinding.FragmentCameraBinding
 import com.kaist.dd.judgement.DrowsinessComputer
+import com.kaist.dd.judgement.Prediction
 import java.time.LocalDateTime
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -61,6 +62,7 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
     private var lastStatus = DrowsinessComputer.Status.STATUS_AWAKE
     private var cameraStartTime: Long = 0
     //-----------------------
+    private lateinit var prediction: Prediction
 
     companion object {
         private const val TAG = "Face Landmarker"
@@ -141,11 +143,8 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
 
         _fragmentCameraBinding!!.fabPredict.setOnClickListener {
             var ears: ArrayList<Double> = databaseHelper.getLastRangeEars()
-
-            // TODO DB에서 가져온 30sec 구간의 ear 값들로 AI Model 통해 추론.
-            //  추론 결과인 졸음 운전에 대한 probability를 가져온다.
-            //  probability 값을 parameter로 alert 호출 함수(createDrowsyPredictionAlert) 를 call.
-            createDrowsyPredictionAlert(0.5)
+            var probability = this.prediction.predict(ears)
+            createDrowsyPredictionAlert(probability)
         }
 
         return fragmentCameraBinding.root
@@ -182,6 +181,8 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
             databaseHelper = DatabaseHelper(
                 context = requireContext()
             )
+
+            prediction = Prediction(context = requireContext(), "model.ptl")
         }
     }
 
@@ -340,8 +341,8 @@ class CameraFragment : Fragment(), FaceLandmarkerHelper.LandmarkerListener {
             probability < 0.5 -> R.string.drowsy_prediction_message_alert_2
             else -> R.string.drowsy_prediction_message_alert_3
         }
-        val fullMessage = getString(R.string.drowsy_prediction_message_first) + "\n\n" +
-                probability.toString() + "\n\n" + getString(alertMessage)
+        val fullMessage = getString(R.string.drowsy_prediction_message_first) +
+                "\n\n%3.0f%%".format(probability*100) + "\n\n" + getString(alertMessage)
 
         builder.setTitle(R.string.drowsy_prediction_title)
         builder.setMessage(fullMessage)
